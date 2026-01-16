@@ -2,7 +2,7 @@
 name = "insighthub"
 version = "0.1.0"
 description = "InsightHub backend"
-authors = ["Max <you@example.com>"]
+authors = ["Massimiliano Nicosia"]
 packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
