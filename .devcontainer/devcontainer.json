@@ -3,9 +3,11 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "api",
   "workspaceFolder": "/workspace",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
   "shutdownAction": "stopCompose",
-  "postCreateCommand": "poetry install",
+  "postCreateCommand": "poetry install --no-interaction --no-ansi --no-root",
   "customizations": {
     "vscode": {
       "extensions": [
