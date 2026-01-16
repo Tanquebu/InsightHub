@@ -1,0 +1,47 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    command: >
+      bash -lc "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - db
+      - redis
+
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    env_file:
+      - ../.env
+    command: >
+      bash -lc "poetry install &&
+      celery -A app.workers.celery_app worker -l info"
+    depends_on:
+      - redis
+      - db
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: insighthub
+      POSTGRES_PASSWORD: insighthub
+      POSTGRES_DB: insighthub
+    ports:
+      - "5432:5432"
+    volumes:
+      - insighthub_pg:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  insighthub_pg:
