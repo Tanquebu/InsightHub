@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import get_db
+from app.schemas.dataset import DatasetCreate, DatasetOut, DatasetUpdate
+from app.services import datasets as dataset_service
+from app.services import projects as project_service
+
+router = APIRouter(prefix="/projects/{project_id}/datasets", tags=["Datasets"])
+
+
+@router.post("", response_model=DatasetOut, status_code=status.HTTP_201_CREATED)
+def create_dataset(project_id: int, payload: DatasetCreate, db: Session = Depends(get_db)):
+    if not project_service.get_project(db, project_id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    return dataset_service.create_dataset(db, project_id, payload.name, payload.source_type)
+
+
+@router.get("", response_model=list[DatasetOut])
+def list_datasets(project_id: int, db: Session = Depends(get_db)):
+    if not project_service.get_project(db, project_id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    return dataset_service.list_datasets(db, project_id)
+
+
+@router.get("/{dataset_id}", response_model=DatasetOut)
+def get_dataset(project_id: int, dataset_id: int, db: Session = Depends(get_db)):
+    dataset = dataset_service.get_dataset(db, dataset_id)
+    if not dataset or dataset.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return dataset
+
+
+@router.patch("/{dataset_id}", response_model=DatasetOut)
+def update_dataset(project_id: int, dataset_id: int, payload: DatasetUpdate, db: Session = Depends(get_db)):
+    dataset = dataset_service.get_dataset(db, dataset_id)
+    if not dataset or dataset.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return dataset_service.update_dataset(db, dataset, payload.name, payload.status, payload.source_type)
+
+
+@router.delete("/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_dataset(project_id: int, dataset_id: int, db: Session = Depends(get_db)):
+    dataset = dataset_service.get_dataset(db, dataset_id)
+    if not dataset or dataset.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    dataset_service.delete_dataset(db, dataset)
+    return None

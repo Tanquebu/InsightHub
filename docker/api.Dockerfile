@@ -20,6 +20,7 @@ COPY pyproject.toml poetry.lock* /workspace/
 
 # Install deps
 RUN poetry config virtualenvs.create false \
+ && poetry lock --no-update \
  && poetry install --no-interaction --no-ansi --no-root
 
 # Copy the rest of the code

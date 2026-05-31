@@ -1,12 +1,12 @@
+import structlog
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import ProjectAlreadyExists
 from app.db.models.project import Project
 
-
-class ProjectAlreadyExists(Exception):
-    pass
+log = structlog.get_logger(__name__)
 
 
 def create_project(db: Session, name: str, description: str | None) -> Project:
@@ -18,6 +18,7 @@ def create_project(db: Session, name: str, description: str | None) -> Project:
         db.rollback()
         raise ProjectAlreadyExists() from e
     db.refresh(project)
+    log.info("project.created", project_id=project.id, name=project.name)
     return project
 
 
@@ -48,3 +49,4 @@ def update_project(db: Session, project: Project, name: str | None, description:
 def delete_project(db: Session, project: Project) -> None:
     db.delete(project)
     db.commit()
+    log.info("project.deleted", project_id=project.id, name=project.name)

@@ -11,7 +11,7 @@ InsightHub è una piattaforma backend per la gestione e analisi di dataset, con 
 
 ---
 
-## ✅ Milestone 1 – Core Backend (IN PROGRESS)
+## ✅ Milestone 1 – Core Backend (COMPLETE)
 
 ### ✔️ Ambiente e Setup
 
@@ -55,11 +55,11 @@ InsightHub è una piattaforma backend per la gestione e analisi di dataset, con 
 
 ### 🔜 Da completare (Milestone 1)
 
-* [ ] Validazione `status` dataset (enum)
-* [ ] Error handling più strutturato
-* [ ] Logging base
-* [ ] Test base con pytest (min 2–3 test)
-* [ ] README iniziale progetto
+* [x] Validazione `status` dataset (Literal type)
+* [x] Error handling più strutturato (global exception handler)
+* [x] Logging base (structlog)
+* [x] Test base con pytest (10 test: 5 projects + 5 datasets)
+* [x] README iniziale progetto
 
 ---
 

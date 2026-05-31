@@ -5,6 +5,8 @@ services:
       dockerfile: docker/api.Dockerfile
     env_file:
       - ../.env
+    volumes:
+      - ..:/workspace
     ports:
       - "8000:8000"
     command: >
@@ -20,9 +22,10 @@ services:
       dockerfile: docker/api.Dockerfile
     env_file:
       - ../.env
+    volumes:
+      - ..:/workspace
     command: >
-      bash -lc "poetry install &&
-      celery -A app.workers.celery_app worker -l info"
+      bash -lc "echo 'Worker not yet implemented, sleeping...' && sleep infinity"
     depends_on:
       - redis
       - db

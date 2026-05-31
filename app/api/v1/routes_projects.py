@@ -10,10 +10,7 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(payload: ProjectCreate, db: Session = Depends(get_db)):
-    try:
-        return project_service.create_project(db, payload.name, payload.description)
-    except project_service.ProjectAlreadyExists:
-        raise HTTPException(status_code=409, detail="Project name already exists")
+    return project_service.create_project(db, payload.name, payload.description)
 
 
 @router.get("", response_model=list[ProjectOut])
@@ -34,11 +31,7 @@ def update_project(project_id: int, payload: ProjectUpdate, db: Session = Depend
     project = project_service.get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-
-    try:
-        return project_service.update_project(db, project, payload.name, payload.description)
-    except project_service.ProjectAlreadyExists:
-        raise HTTPException(status_code=409, detail="Project name already exists")
+    return project_service.update_project(db, project, payload.name, payload.description)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
