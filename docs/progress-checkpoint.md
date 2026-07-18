@@ -4,7 +4,8 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-18T19:38 (pausa orchestrazione: soglia rate-limit 5h raggiunta — 80%)
+Aggiornato: 2026-07-18T21:50 — Milestone 5 verificata e committata (vedi sotto), nessuna pausa
+rate-limit attiva (5h: 34%, 7d: 74%, entrambi ben sotto soglia 85%).
 
 | Milestone | Stato | Note |
 |---|---|---|
@@ -12,18 +13,38 @@ Aggiornato: 2026-07-18T19:38 (pausa orchestrazione: soglia rate-limit 5h raggiun
 | 2 – Data Processing (Celery ingestion) | ✅ completo | commit `c56fae9` |
 | 3 – Data Profiling | ✅ completo | commit `28f04af` — verificato (35/35 test, migration su Postgres reale) |
 | 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
-| 5 – Hardening | ⏸️ **PROSSIMO — non ancora iniziato** | decisioni utente raccolte (vedi sotto), pronto per spawn del subagent appena il budget lo consente |
-| 6 – Testing & Quality | ⏳ da fare | |
+| 5 – Hardening | ✅ completo | commit `2cb0f69` — verificato (67/67 test, migration su Postgres reale upgrade/downgrade/upgrade, ruff+mypy clean) |
+| 6 – Testing & Quality | ⏳ **PROSSIMO — da fare** | |
 | 7 – Frontend (opzionale) | ⏳ da fare | opzionale — confermare con l'utente prima di iniziare |
 
-## Perché ci si è fermati qui
+## Milestone 5 — come è stata trovata e verificata (2026-07-18T21:50)
 
-Watchdog rate-limit ha segnalato **5h = 80% (soglia raggiunta)** alle 2026-07-18T19:38 UTC, reset
-finestra alle **2026-07-18 22:40** (7d era al 70%, ben sotto la soglia di stop totale 85%).
-Nessun subagent era in esecuzione al momento dello stop (Milestone 4 era già stata committata e
-verificata) — non c'è nulla da segnare come "interrotto a metà".
+Una sessione precedente era stata interrotta a forza (bug del watchdog, poi corretto) dopo aver
+scritto il lavoro della Milestone 5 su disco ma **senza committarlo** e senza aggiornare questo
+checkpoint. Invece di riscrivere da zero, il lavoro non committato è stato revisionato e
+verificato indipendentemente:
 
-Wakeup programmato via `pm-agent/add-wakeup.py` per **2026-07-18T22:45** (reset + 5 min).
+- Confrontato ogni file (routes_auth.py, security.py, rate_limit.py, dependencies.py, modello
+  User, schemas, service, CLI seed, migration, test) con le "Decisioni utente" qui sotto — coerente
+  su tutti i punti: nessun endpoint di registrazione pubblica, tutte le route esistenti protette da
+  `get_current_user`, rate limiting slowapi Redis-backed per-IP, `/health` e `/auth/login` pubblici.
+- `poetry install` dentro il container `api` (build pulita, tutte le nuove dipendenze —
+  argon2-cffi, pyjwt, python-multipart, slowapi — risolte senza conflitti).
+- `alembic upgrade head` su Postgres reale (container `db`), verificato `\d users` nello schema
+  effettivo, poi `alembic downgrade -1 && alembic upgrade head` per confermare la reversibilità.
+- `pytest tests/ -q` → **67/67 passati**.
+- `ruff check app/` e `mypy app/` puliti. `black --check app/` segnala 16 file da riformattare, ma
+  è un drift pre-esistente **non introdotto da questa milestone** (confermato con `git stash` +
+  `black --check` sullo stato committato precedente, stesso risultato) — non è stato toccato.
+- Committato in `2cb0f69` (non pushato).
+
+Nota operativa: il primo tentativo di verifica migration ha rifatto `docker compose run` senza il
+file `docker-compose.override.yml`, causando la ricreazione di `devcontainer-db-1`/`redis-1` con le
+porte host di default (5432/6379) invece di quelle remappate (5544/6389), in conflitto con un
+container Postgres di un altro progetto già sulla 5432 dell'host. Risolto rilanciando `up -d db
+redis` con **entrambi** i file compose (`-f docker-compose.yml -f docker-compose.override.yml`).
+Dati persistenti nel volume nominato `insighthub_pg`, quindi nessuna perdita — ma da tenere a
+mente: usare sempre entrambi i file compose per questo progetto, mai solo il base.
 
 ## Decisioni utente raccolte per la Milestone 5 — Hardening
 
