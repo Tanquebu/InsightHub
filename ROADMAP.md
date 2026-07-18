@@ -79,7 +79,7 @@ Gestire ingestion e processing asincrono dei dataset
 
 ---
 
-## 🧠 Milestone 3 – Data Profiling
+## 🧠 Milestone 3 – Data Profiling (COMPLETE)
 
 ### Obiettivo
 
@@ -87,15 +87,15 @@ Generare insight automatici sui dataset
 
 ### Task
 
-* [ ] Integrazione Pandas
-* [ ] Profiling base:
+* [x] Integrazione Pandas
+* [x] Profiling base:
 
-  * [ ] numero righe
-  * [ ] colonne
-  * [ ] missing values
-  * [ ] tipi dati
-* [ ] Salvataggio metriche DB
-* [ ] Endpoint API per risultati profiling
+  * [x] numero righe
+  * [x] colonne
+  * [x] missing values
+  * [x] tipi dati
+* [x] Salvataggio metriche DB
+* [x] Endpoint API per risultati profiling
 
 ---
 

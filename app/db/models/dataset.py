@@ -15,6 +15,8 @@ class Dataset(Base):
     status: Mapped[str] = mapped_column(String(30), default="uploaded", index=True)
     source_type: Mapped[str] = mapped_column(String(30), default="upload", index=True)
 
+    file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[object] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

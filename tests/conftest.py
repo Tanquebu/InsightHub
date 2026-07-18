@@ -36,3 +36,17 @@ def client():
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def db_session():
+    """A session bound to the same in-memory engine used by the `client` fixture.
+
+    Useful for tests that need to set up or inspect rows (e.g. persisting a
+    DatasetProfile directly) without exercising the full ingestion pipeline.
+    """
+    db = _Session()
+    try:
+        yield db
+    finally:
+        db.close()

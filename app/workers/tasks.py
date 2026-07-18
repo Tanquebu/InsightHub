@@ -5,22 +5,33 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.models.dataset import Dataset
 from app.db.session import SessionLocal
+from app.services.profiling import profile_dataset
 from app.workers.celery_app import celery_app
 
 log = structlog.get_logger(__name__)
 
 
-def perform_ingestion(dataset: Dataset) -> None:
+def perform_ingestion(dataset: Dataset, db: Session) -> None:
     """Run the ingestion step.
 
-    Milestone 2 establishes asynchronous orchestration. Source-specific reading is
-    intentionally left behind this function for the profiling milestone.
+    Milestone 2 establishes asynchronous orchestration. Milestone 3 adds profiling:
+    when the dataset has a `file_path`, read it with pandas and persist row/column
+    counts, missing-value counts and dtypes as a DatasetProfile. Datasets without a
+    file_path are logged and skipped — that's an acceptable no-op for now. A
+    file_path that points to a file that can't be read is a genuine ingestion
+    failure and is left to the normal retry/failure handling below.
     """
     log.info(
         "dataset.ingestion.executed",
         dataset_id=dataset.id,
         source_type=dataset.source_type,
     )
+
+    if not dataset.file_path:
+        log.info("dataset.profiling.skipped_no_file_path", dataset_id=dataset.id)
+        return
+
+    profile_dataset(db, dataset)
 
 
 def _set_status(db: Session, dataset: Dataset, status: str) -> None:
@@ -46,7 +57,7 @@ def ingest_dataset(self: Task, dataset_id: int) -> dict[str, int | str]:
         log.info("dataset.ingestion.started", dataset_id=dataset_id)
 
         try:
-            perform_ingestion(dataset)
+            perform_ingestion(dataset, db)
         except Exception as exc:
             db.rollback()
             # Refresh after rollback so that status handling always uses a valid ORM object.

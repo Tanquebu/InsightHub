@@ -22,6 +22,32 @@ def test_create_dataset(client: TestClient):
     assert body["project_id"] == project["id"]
 
 
+def test_create_dataset_with_file_path(client: TestClient):
+    project = _create_project(client)
+    response = client.post(
+        f"/api/v1/projects/{project['id']}/datasets",
+        json={"name": "sales_2024.csv", "file_path": "/data/sales_2024.csv"},
+    )
+    assert response.status_code == 201
+    assert response.json()["file_path"] == "/data/sales_2024.csv"
+
+
+def test_update_dataset_file_path(client: TestClient):
+    project = _create_project(client)
+    dataset = client.post(
+        f"/api/v1/projects/{project['id']}/datasets",
+        json={"name": "file.csv"},
+    ).json()
+    assert dataset["file_path"] is None
+
+    response = client.patch(
+        f"/api/v1/projects/{project['id']}/datasets/{dataset['id']}",
+        json={"file_path": "/data/file.csv"},
+    )
+    assert response.status_code == 200
+    assert response.json()["file_path"] == "/data/file.csv"
+
+
 def test_create_dataset_project_not_found(client: TestClient):
     response = client.post("/api/v1/projects/999/datasets", json={"name": "file.csv"})
     assert response.status_code == 404

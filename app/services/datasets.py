@@ -17,8 +17,14 @@ class DatasetIngestionDispatchError(Exception):
     pass
 
 
-def create_dataset(db: Session, project_id: int, name: str, source_type: str) -> Dataset:
-    dataset = Dataset(project_id=project_id, name=name, source_type=source_type)
+def create_dataset(
+    db: Session,
+    project_id: int,
+    name: str,
+    source_type: str,
+    file_path: str | None = None,
+) -> Dataset:
+    dataset = Dataset(project_id=project_id, name=name, source_type=source_type, file_path=file_path)
     db.add(dataset)
     db.commit()
     db.refresh(dataset)
@@ -44,6 +50,7 @@ def update_dataset(
     name: str | None,
     status: str | None,
     source_type: str | None,
+    file_path: str | None = None,
 ) -> Dataset:
     if name is not None:
         dataset.name = name
@@ -51,6 +58,8 @@ def update_dataset(
         dataset.status = status
     if source_type is not None:
         dataset.source_type = source_type
+    if file_path is not None:
+        dataset.file_path = file_path
     db.commit()
     db.refresh(dataset)
     return dataset

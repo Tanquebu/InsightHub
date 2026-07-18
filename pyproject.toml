@@ -16,6 +16,7 @@ sqlalchemy = "^2.0.45"
 alembic = "^1.18.1"
 psycopg = {extras = ["binary"], version = "^3.3.2"}
 celery = {extras = ["redis"], version = "^5.4.0"}
+pandas = "^3.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
