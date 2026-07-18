@@ -4,7 +4,7 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-18T19:25 (pausa orchestrazione: budget 5h vicino a soglia + Milestone 5 richiede decisioni utente)
+Aggiornato: 2026-07-18T19:38 (pausa orchestrazione: soglia rate-limit 5h raggiunta — 80%)
 
 | Milestone | Stato | Note |
 |---|---|---|
@@ -12,21 +12,38 @@ Aggiornato: 2026-07-18T19:25 (pausa orchestrazione: budget 5h vicino a soglia + 
 | 2 – Data Processing (Celery ingestion) | ✅ completo | commit `c56fae9` |
 | 3 – Data Profiling | ✅ completo | commit `28f04af` — verificato (35/35 test, migration su Postgres reale) |
 | 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
-| 5 – Hardening | ⏸️ in pausa | **richiede decisioni utente prima di procedere** (vedi sotto) — non ancora spawnato alcun subagent |
+| 5 – Hardening | ⏸️ **PROSSIMO — non ancora iniziato** | decisioni utente raccolte (vedi sotto), pronto per spawn del subagent appena il budget lo consente |
 | 6 – Testing & Quality | ⏳ da fare | |
 | 7 – Frontend (opzionale) | ⏳ da fare | opzionale — confermare con l'utente prima di iniziare |
 
 ## Perché ci si è fermati qui
 
-1. **Budget rate-limit**: 5h al 77% (soglia di stop nuovi spawn: 80%), 7d al 70%. Non ancora
-   sopra soglia, ma abbastanza vicino da non voler avviare un altro subagent lungo senza
-   prima far scendere la finestra o avere conferma dall'utente.
-2. **Milestone 5 — Hardening richiede decisioni di prodotto/architettura che non sono nella
-   roadmap**: non esiste ancora nessun modello `User`/sistema di autenticazione in questo
-   progetto. "Autenticazione (JWT)" implica scelte reali (single-tenant o multi-utente,
-   registrazione self-service o utenti pre-seedati, quali route proteggere, ruoli/permessi).
-   "Rate limiting" implica una scelta di libreria/strategia (per-IP? per-API-key? backend
-   Redis?). Il CI/CD è invece già deciso dalla roadmap stessa (GitHub Actions).
+Watchdog rate-limit ha segnalato **5h = 80% (soglia raggiunta)** alle 2026-07-18T19:38 UTC, reset
+finestra alle **2026-07-18 22:40** (7d era al 70%, ben sotto la soglia di stop totale 85%).
+Nessun subagent era in esecuzione al momento dello stop (Milestone 4 era già stata committata e
+verificata) — non c'è nulla da segnare come "interrotto a metà".
+
+Wakeup programmato via `pm-agent/add-wakeup.py` per **2026-07-18T22:45** (reset + 5 min).
+
+## Decisioni utente raccolte per la Milestone 5 — Hardening
+
+Raccolte il 2026-07-18 prima della pausa, da applicare alla ripresa:
+
+1. **Modello di autenticazione**: JWT con **utenti pre-seedati, solo login** — NESSUN endpoint
+   di registrazione pubblica self-service. Serve comunque un modello `User` (email/username +
+   password hash con bcrypt/argon2) e un modo per crearne (seed script o comando admin/CLI, non
+   un endpoint `/auth/register` pubblico). Endpoint `/auth/login` restituisce access token JWT
+   (+ eventualmente refresh token — dettaglio tecnico lasciato all'implementazione).
+2. **Scope della protezione**: **tutte le route esistenti** (`/api/v1/projects`, `/api/v1/datasets`
+   e i nuovi endpoint `/ingest`, `/profile`, `/insights`) devono richiedere un JWT valido.
+   Nessuna route pubblica salvo `/auth/login` stesso (e probabilmente `/health` se esiste).
+3. **Rate limiting**: **Redis-backed, per-IP** (Redis è già nello stack per Celery). Usare una
+   libreria consolidata (es. `slowapi` o `fastapi-limiter`), limite su tutte le route API.
+4. **CI/CD**: già deciso dalla roadmap stessa → GitHub Actions (nessuna ambiguità qui).
+5. Non specificato dall'utente, lasciato a discrezione dell'implementazione: dettagli su
+   scadenza/refresh dei token JWT, libreria di rate limiting specifica, struttura esatta del
+   comando/seed per creare utenti. Se emergono ulteriori scelte di prodotto genuinamente
+   ambigue (non tecniche), fermarsi e chiedere invece di decidere silenziosamente.
 
 ## Decisioni tecniche prese durante l'orchestrazione
 
