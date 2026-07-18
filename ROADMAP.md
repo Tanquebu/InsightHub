@@ -114,7 +114,7 @@ Costruire valore reale sui dati
 
 ---
 
-## ⚙️ Milestone 5 – Hardening
+## ⚙️ Milestone 5 – Hardening (COMPLETE)
 
 ### Obiettivo
 
@@ -122,21 +122,21 @@ Rendere il progetto “production-ready”
 
 ### Task
 
-* [ ] Autenticazione (JWT)
-* [ ] Rate limiting
-* [ ] Logging strutturato
-* [ ] Monitoring
-* [ ] CI/CD (GitHub Actions)
-* [ ] Docker production-ready
+* [x] Autenticazione (JWT)
+* [x] Rate limiting
+* [x] Logging strutturato
+* [x] Monitoring
+* [x] CI/CD (GitHub Actions)
+* [x] Docker production-ready
 
 ---
 
-## 🧪 Milestone 6 – Testing & Quality
+## 🧪 Milestone 6 – Testing & Quality (COMPLETE)
 
-* [ ] Test API (pytest)
-* [ ] Test DB
-* [ ] Coverage > 70%
-* [ ] Linting pipeline CI
+* [x] Test API (pytest)
+* [x] Test DB
+* [x] Coverage > 70%
+* [x] Linting pipeline CI
 
 ---
 

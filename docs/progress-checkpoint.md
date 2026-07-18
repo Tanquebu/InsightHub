@@ -4,10 +4,11 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-19T00:35 — Progetto considerato concluso per ora su decisione esplicita
-dell'utente. Milestone 6 resta l'ultimo lavoro verificato e committato (vedi sotto). Nessuna
-pausa rate-limit attiva (5h: 67%, 7d: 77% all'ultima verifica — sopra soglia warning 75% sul
-7d, non bloccante; da ricontrollare con `--fresh` a inizio prossima sessione).
+Aggiornato: 2026-07-18T23:50 — Utente ha deciso di riprendere la Milestone 7 (dashboard React),
+ma il budget 5h è al 94% (soglia stop nuovi spawn 80%) — vedi sezione "Milestone 7 — decisioni e
+piano tecnico" sotto per il brief completo. Nessuno spawn effettuato in questa sessione;
+pianificazione pronta, esecuzione rimandata al reset budget. ROADMAP.md allineato (checkbox M5/M6
+mancavano, corrette).
 
 | Milestone | Stato | Note |
 |---|---|---|
@@ -17,7 +18,7 @@ pausa rate-limit attiva (5h: 67%, 7d: 77% all'ultima verifica — sopra soglia w
 | 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
 | 5 – Hardening | ✅ completo | commit `2cb0f69` — verificato (67/67 test, migration su Postgres reale upgrade/downgrade/upgrade, ruff+mypy clean) |
 | 6 – Testing & Quality | ✅ completo | commit `a12f6b5` — verificato (85/85 test, coverage 96.27% con pytest-cov, ruff+black+mypy puliti, CI GitHub Actions aggiunta) |
-| 7 – Frontend (opzionale) | ⏸️ non iniziata, rimandata | **decisione esplicita utente (2026-07-19)**: progetto considerato concluso per ora, Milestone 7 verrà eventualmente ripresa in una sessione futura. Nessun codice scritto per questa milestone. |
+| 7 – Frontend (opzionale) | 🔜 pianificata, in attesa di reset budget | **decisione utente (2026-07-19)**: procedere con la dashboard React. Brief tecnico completo pronto (vedi sezione dedicata). Spawn del subagent programmato per dopo il reset 5h (03:40, wakeup alle 03:45). |
 
 ## Chiusura sessione (2026-07-19T00:35)
 
@@ -156,6 +157,56 @@ Raccolte il 2026-07-18 prima della pausa, da applicare alla ripresa:
   il codice `get_db`/`SessionLocal` che il resto della suite sovrascrive sempre — scelta tecnica
   per coprire sia la velocità sia il path di produzione reale, senza appesantire tutta la suite
   con una dipendenza Postgres obbligatoria.
+
+## Milestone 7 — Frontend: decisioni e piano tecnico (2026-07-18T23:50)
+
+Rivalutata insieme all'utente il 2026-07-19: la Milestone 7 (dashboard React) può partire, ma
+il budget 5h ha raggiunto il **94%** (soglia stop nuovi spawn 80%, vedi sezione sotto) quasi nello
+stesso momento. Decisione utente esplicita: **preparare la pianificazione ora, eseguire lo spawn
+del subagent solo dopo il reset del budget**. Nessuna ambiguità di prodotto residua sullo scope
+(i tre bullet della roadmap sono chiari); le scelte tecniche sotto sono decise per discrezione
+implementativa, coerenti con lo stack e le convenzioni già in uso nel backend.
+
+**Scope (dalla roadmap, invariato)**:
+- [ ] Dashboard React
+- [ ] Visualizzazione dataset
+- [ ] Insight UI
+
+**Decisioni tecniche per il brief del subagent**:
+1. Nuova cartella `frontend/` a livello di repo (React + TypeScript + Vite — coerente con l'uso
+   di typing stretto già presente nel backend via mypy). Non un monorepo con tool dedicati, solo
+   una seconda cartella sorgente accanto ad `app/`.
+2. Pagine minime necessarie a coprire i 3 bullet:
+   - **Login**: form email/password → `POST /api/v1/auth/login` (form-encoded,
+     `OAuth2PasswordRequestForm` lato backend — non JSON), salva il JWT (`access_token` da
+     `Token` schema) in memoria/localStorage, redirect alle route protette se assente.
+   - **Lista dataset**: `GET /api/v1/projects` poi `GET /api/v1/datasets` (o filtrati per
+     progetto, verificare schema query param esistente) — "Visualizzazione dataset".
+   - **Dettaglio dataset**: combina `GET /api/v1/datasets/{id}/profile` e
+     `GET /api/v1/datasets/{id}/insights` in un'unica vista — "Insight UI" (metriche +
+     lista `DatasetQualityIssueOut` con severity/message).
+3. Client API: wrapper fetch centralizzato che allega `Authorization: Bearer <token>`, gestisce
+   401 con redirect al login. Base URL da env var Vite (`VITE_API_BASE_URL`), default
+   `http://localhost:8000`.
+4. **CORS**: il backend non ha `CORSMiddleware` configurato (verificato, assente in
+   `app/main.py`) — va aggiunto per l'origin del dev server Vite (default `:5173`), altrimenti il
+   frontend non potrà chiamare le API in dev. Root cause da correggere in questa milestone, non un
+   workaround.
+5. Styling: minimale/funzionale (CSS semplice o utility minimale), niente investimento di design
+   — coerente con l'approccio "MVP" già tenuto per le altre milestone. Nessuna libreria di
+   componenti pesante.
+6. Fuori scope esplicito (non richiesto dai bullet roadmap): packaging Docker di produzione per
+   il frontend, test automatici del frontend (non elencati come task M7, a differenza di M6),
+   state management avanzato (Redux/Zustand) — dati derivano da poche chiamate REST, non serve.
+7. Verifica manuale prevista: creare un utente di test con
+   `poetry run python -m app.cli.seed_user --email test@example.com --password ...` dentro il
+   container `api`, poi login reale dal frontend contro il backend reale (non solo build che
+   compila) prima di considerare la milestone completa.
+
+**Istruzioni per il subagent alla ripresa**: leggere questa sezione per intero prima di
+iniziare; se emerge un'ambiguità di prodotto genuinamente non coperta qui (es. multi-progetto vs
+singolo, gestione errori UX specifica), fermarsi e lasciare una nota nel checkpoint invece di
+decidere silenziosamente — l'orchestratore la porrà all'utente alla verifica.
 
 ## Se interrotto per soglia rate-limit
 
