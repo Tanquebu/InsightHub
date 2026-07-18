@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db
-from app.schemas.dataset import DatasetCreate, DatasetOut, DatasetUpdate
+from app.schemas.dataset import DatasetCreate, DatasetIngestionOut, DatasetOut, DatasetUpdate
 from app.services import datasets as dataset_service
 from app.services import projects as project_service
 
@@ -29,6 +29,26 @@ def get_dataset(project_id: int, dataset_id: int, db: Session = Depends(get_db))
     if not dataset or dataset.project_id != project_id:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return dataset
+
+
+@router.post(
+    "/{dataset_id}/ingest",
+    response_model=DatasetIngestionOut,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def ingest_dataset(project_id: int, dataset_id: int, db: Session = Depends(get_db)):
+    dataset = dataset_service.get_dataset(db, dataset_id)
+    if not dataset or dataset.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    try:
+        task_id = dataset_service.queue_ingestion(db, dataset)
+    except dataset_service.DatasetIngestionAlreadyStarted:
+        raise HTTPException(status_code=409, detail="Dataset ingestion already started")
+    except dataset_service.DatasetIngestionDispatchError:
+        raise HTTPException(status_code=503, detail="Ingestion service unavailable")
+
+    return {"dataset_id": dataset.id, "status": dataset.status, "task_id": task_id}
 
 
 @router.patch("/{dataset_id}", response_model=DatasetOut)

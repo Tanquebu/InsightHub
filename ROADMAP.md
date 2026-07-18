@@ -63,7 +63,7 @@ InsightHub è una piattaforma backend per la gestione e analisi di dataset, con 
 
 ---
 
-## 🚀 Milestone 2 – Data Processing
+## 🚀 Milestone 2 – Data Processing (COMPLETE)
 
 ### Obiettivo
 
@@ -71,11 +71,11 @@ Gestire ingestion e processing asincrono dei dataset
 
 ### Task
 
-* [ ] Setup Celery + Redis
-* [ ] Worker async
-* [ ] Job ingestion dataset
-* [ ] Stato dataset (pending → processing → completed)
-* [ ] Retry e gestione errori
+* [x] Setup Celery + Redis
+* [x] Worker async
+* [x] Job ingestion dataset (endpoint `POST /datasets/{id}/ingest`)
+* [x] Stato dataset (pending → processing → completed/failed)
+* [x] Retry e gestione errori (`self.retry` con max retries e countdown configurabili)
 
 ---
 

@@ -25,3 +25,9 @@ class DatasetOut(BaseModel):
     name: str
     status: str
     source_type: str
+
+
+class DatasetIngestionOut(BaseModel):
+    dataset_id: int
+    status: DatasetStatus
+    task_id: str

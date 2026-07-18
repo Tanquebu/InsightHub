@@ -25,7 +25,7 @@ services:
     volumes:
       - ..:/workspace
     command: >
-      bash -lc "echo 'Worker not yet implemented, sleeping...' && sleep infinity"
+      bash -lc "poetry run celery -A app.workers.celery_app:celery_app worker --loglevel=INFO"
     depends_on:
       - redis
       - db
