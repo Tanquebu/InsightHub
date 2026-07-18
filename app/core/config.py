@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     ingestion_max_retries: int = 3
     ingestion_retry_delay_seconds: int = 5
 
+    # Milestone 4 — Insight Engine: quality-rule thresholds (fractions, 0.0-1.0).
+    quality_missing_warning_threshold: float = 0.2
+    quality_missing_critical_threshold: float = 0.5
+    quality_min_completeness_score: float = 0.7
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

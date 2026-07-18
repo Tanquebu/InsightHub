@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db
 from app.schemas.dataset import DatasetCreate, DatasetIngestionOut, DatasetOut, DatasetUpdate
+from app.schemas.insights import DatasetInsightsOut
 from app.schemas.profile import DatasetProfileOut
 from app.services import datasets as dataset_service
 from app.services import profiling as profiling_service
 from app.services import projects as project_service
+from app.services import quality as quality_service
 
 router = APIRouter(prefix="/projects/{project_id}/datasets", tags=["Datasets"])
 
@@ -65,6 +67,21 @@ def get_dataset_profile(project_id: int, dataset_id: int, db: Session = Depends(
     if not profile:
         raise HTTPException(status_code=404, detail="Dataset profile not found")
     return profile
+
+
+@router.get("/{dataset_id}/insights", response_model=DatasetInsightsOut)
+def get_dataset_insights(project_id: int, dataset_id: int, db: Session = Depends(get_db)):
+    dataset = dataset_service.get_dataset(db, dataset_id)
+    if not dataset or dataset.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    profile = profiling_service.get_dataset_profile(db, dataset_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Dataset profile not found")
+
+    metrics = quality_service.compute_dataset_metrics(profile)
+    issues = quality_service.get_dataset_quality_issues(db, dataset_id)
+    return {"dataset_id": dataset_id, "metrics": metrics, "issues": issues}
 
 
 @router.patch("/{dataset_id}", response_model=DatasetOut)

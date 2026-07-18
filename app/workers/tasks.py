@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.db.models.dataset import Dataset
 from app.db.session import SessionLocal
 from app.services.profiling import profile_dataset
+from app.services.quality import evaluate_quality_rules, persist_quality_issues
 from app.workers.celery_app import celery_app
 
 log = structlog.get_logger(__name__)
@@ -20,6 +21,10 @@ def perform_ingestion(dataset: Dataset, db: Session) -> None:
     file_path are logged and skipped — that's an acceptable no-op for now. A
     file_path that points to a file that can't be read is a genuine ingestion
     failure and is left to the normal retry/failure handling below.
+
+    Milestone 4 adds the insight engine: right after profiling succeeds, quality
+    rules are evaluated against the fresh profile and persisted as
+    DatasetQualityIssue rows, overwriting any issues from a previous run.
     """
     log.info(
         "dataset.ingestion.executed",
@@ -31,7 +36,9 @@ def perform_ingestion(dataset: Dataset, db: Session) -> None:
         log.info("dataset.profiling.skipped_no_file_path", dataset_id=dataset.id)
         return
 
-    profile_dataset(db, dataset)
+    profile = profile_dataset(db, dataset)
+    issues = evaluate_quality_rules(profile)
+    persist_quality_issues(db, dataset.id, issues)
 
 
 def _set_status(db: Session, dataset: Dataset, status: str) -> None:

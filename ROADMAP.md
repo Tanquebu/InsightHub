@@ -107,10 +107,10 @@ Costruire valore reale sui dati
 
 ### Task
 
-* [ ] Metriche custom
-* [ ] Regole di qualità dati
-* [ ] Alert (es. anomalie)
-* [ ] Prime feature ML (opzionale)
+* [x] Metriche custom
+* [x] Regole di qualità dati
+* [x] Alert (es. anomalie)
+* [ ] Prime feature ML (opzionale) — esplicitamente opzionale, non implementata in questa milestone
 
 ---
 
