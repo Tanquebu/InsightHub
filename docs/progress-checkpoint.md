@@ -4,8 +4,10 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-19T00:20 — Milestone 6 verificata e committata (vedi sotto), nessuna pausa
-rate-limit attiva (5h: 44%, 7d: 75% all'inizio della sessione, entrambi ben sotto soglia 85%).
+Aggiornato: 2026-07-19T00:35 — Progetto considerato concluso per ora su decisione esplicita
+dell'utente. Milestone 6 resta l'ultimo lavoro verificato e committato (vedi sotto). Nessuna
+pausa rate-limit attiva (5h: 67%, 7d: 77% all'ultima verifica — sopra soglia warning 75% sul
+7d, non bloccante; da ricontrollare con `--fresh` a inizio prossima sessione).
 
 | Milestone | Stato | Note |
 |---|---|---|
@@ -15,7 +17,19 @@ rate-limit attiva (5h: 44%, 7d: 75% all'inizio della sessione, entrambi ben sott
 | 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
 | 5 – Hardening | ✅ completo | commit `2cb0f69` — verificato (67/67 test, migration su Postgres reale upgrade/downgrade/upgrade, ruff+mypy clean) |
 | 6 – Testing & Quality | ✅ completo | commit `a12f6b5` — verificato (85/85 test, coverage 96.27% con pytest-cov, ruff+black+mypy puliti, CI GitHub Actions aggiunta) |
-| 7 – Frontend (opzionale) | ⏳ da fare | opzionale — confermare con l'utente prima di iniziare |
+| 7 – Frontend (opzionale) | ⏸️ non iniziata, rimandata | **decisione esplicita utente (2026-07-19)**: progetto considerato concluso per ora, Milestone 7 verrà eventualmente ripresa in una sessione futura. Nessun codice scritto per questa milestone. |
+
+## Chiusura sessione (2026-07-19T00:35)
+
+L'utente, interpellato su se autorizzare l'avvio della Milestone 7 (dashboard React opzionale),
+ha risposto di **non** procedere ora e di considerare l'attività conclusa per il momento; la
+Milestone 7 sarà eventualmente ripresa in una sessione successiva. Nessun nuovo scope aperto in
+questa sessione oltre alla verifica di consolidamento già registrata sopra (rate-limit, git
+status/log, presenza CI workflow, diff di `a12f6b5`) — nessuna discrepanza trovata. Working tree
+pulito, branch `main` avanti di 8 commit rispetto a `origin/main` (non pushato). Nessun subagent
+da fermare, nessun lavoro in corso da verificare. Alla ripresa: leggere questo file, ripartire
+dalla Milestone 7 solo dopo nuova conferma esplicita dell'utente (non riproporla automaticamente
+come "prossimo passo ovvio").
 
 ## Milestone 6 — come è stata trovata e verificata (2026-07-19T00:20)
 
