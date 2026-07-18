@@ -4,17 +4,29 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-18T19:20 (Milestone 3 completata e verificata)
+Aggiornato: 2026-07-18T19:25 (pausa orchestrazione: budget 5h vicino a soglia + Milestone 5 richiede decisioni utente)
 
 | Milestone | Stato | Note |
 |---|---|---|
 | 1 – Core Backend | ✅ completo | commit `ade1fe3` |
 | 2 – Data Processing (Celery ingestion) | ✅ completo | commit `c56fae9` |
-| 3 – Data Profiling | ✅ completo | verificato indipendentemente (35/35 test, migration upgrade/downgrade/upgrade su Postgres reale) — pronto per commit |
-| 4 – Insight Engine | ⏳ prossimo | |
-| 5 – Hardening | ⏳ da fare | probabile checkpoint utente (strategia auth JWT, provider CI/CD) |
+| 3 – Data Profiling | ✅ completo | commit `28f04af` — verificato (35/35 test, migration su Postgres reale) |
+| 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
+| 5 – Hardening | ⏸️ in pausa | **richiede decisioni utente prima di procedere** (vedi sotto) — non ancora spawnato alcun subagent |
 | 6 – Testing & Quality | ⏳ da fare | |
 | 7 – Frontend (opzionale) | ⏳ da fare | opzionale — confermare con l'utente prima di iniziare |
+
+## Perché ci si è fermati qui
+
+1. **Budget rate-limit**: 5h al 77% (soglia di stop nuovi spawn: 80%), 7d al 70%. Non ancora
+   sopra soglia, ma abbastanza vicino da non voler avviare un altro subagent lungo senza
+   prima far scendere la finestra o avere conferma dall'utente.
+2. **Milestone 5 — Hardening richiede decisioni di prodotto/architettura che non sono nella
+   roadmap**: non esiste ancora nessun modello `User`/sistema di autenticazione in questo
+   progetto. "Autenticazione (JWT)" implica scelte reali (single-tenant o multi-utente,
+   registrazione self-service o utenti pre-seedati, quali route proteggere, ruoli/permessi).
+   "Rate limiting" implica una scelta di libreria/strategia (per-IP? per-API-key? backend
+   Redis?). Il CI/CD è invece già deciso dalla roadmap stessa (GitHub Actions).
 
 ## Decisioni tecniche prese durante l'orchestrazione
 
