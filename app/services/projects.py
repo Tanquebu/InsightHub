@@ -30,7 +30,9 @@ def get_project(db: Session, project_id: int) -> Project | None:
     return db.get(Project, project_id)
 
 
-def update_project(db: Session, project: Project, name: str | None, description: str | None) -> Project:
+def update_project(
+    db: Session, project: Project, name: str | None, description: str | None
+) -> Project:
     if name is not None:
         project.name = name
     if description is not None:

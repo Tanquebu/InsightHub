@@ -24,7 +24,9 @@ def create_dataset(
     source_type: str,
     file_path: str | None = None,
 ) -> Dataset:
-    dataset = Dataset(project_id=project_id, name=name, source_type=source_type, file_path=file_path)
+    dataset = Dataset(
+        project_id=project_id, name=name, source_type=source_type, file_path=file_path
+    )
     db.add(dataset)
     db.commit()
     db.refresh(dataset)
@@ -35,7 +37,9 @@ def create_dataset(
 def list_datasets(db: Session, project_id: int) -> list[Dataset]:
     return list(
         db.scalars(
-            select(Dataset).where(Dataset.project_id == project_id).order_by(Dataset.id.desc())
+            select(Dataset)
+            .where(Dataset.project_id == project_id)
+            .order_by(Dataset.id.desc())
         ).all()
     )
 

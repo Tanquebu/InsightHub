@@ -6,7 +6,9 @@ class Settings(BaseSettings):
     env: str = "local"
     log_level: str = "INFO"
 
-    database_url: str  # es: postgresql+psycopg://insighthub:insighthub@db:5432/insighthub
+    database_url: (
+        str  # es: postgresql+psycopg://insighthub:insighthub@db:5432/insighthub
+    )
 
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/1"
@@ -30,4 +32,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
-settings = Settings()
+# database_url/jwt_secret_key have no Python-level default because they're required
+# to come from the environment/.env — mypy can't see pydantic-settings' env loading,
+# so it flags them as missing constructor args. See pydantic-settings docs.
+settings = Settings()  # type: ignore[call-arg]

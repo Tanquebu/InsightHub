@@ -8,7 +8,9 @@ class Dataset(Base):
     __tablename__ = "datasets"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), index=True
+    )
 
     name: Mapped[str] = mapped_column(String(160), index=True)
 
@@ -17,7 +19,9 @@ class Dataset(Base):
 
     file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[object] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[object] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

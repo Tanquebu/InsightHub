@@ -21,7 +21,9 @@ from slowapi.util import get_remote_address
 
 def _build_rate_limited_app(limit: str) -> FastAPI:
     app = FastAPI()
-    limiter = Limiter(key_func=get_remote_address, storage_uri="memory://", default_limits=[limit])
+    limiter = Limiter(
+        key_func=get_remote_address, storage_uri="memory://", default_limits=[limit]
+    )
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)

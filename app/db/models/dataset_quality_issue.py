@@ -24,6 +24,8 @@ class DatasetQualityIssue(Base):
     severity: Mapped[str] = mapped_column(String(20))
     message: Mapped[str] = mapped_column(String(500))
 
-    created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[object] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     dataset = relationship("Dataset")

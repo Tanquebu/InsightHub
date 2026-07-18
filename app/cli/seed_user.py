@@ -25,7 +25,9 @@ def seed_user(email: str, password: str, is_active: bool = True) -> User:
     try:
         user = db.scalar(select(User).where(User.email == email))
         if user is None:
-            user = User(email=email, password_hash=hash_password(password), is_active=is_active)
+            user = User(
+                email=email, password_hash=hash_password(password), is_active=is_active
+            )
             db.add(user)
             action = "user.seed.created"
         else:
@@ -42,11 +44,19 @@ def seed_user(email: str, password: str, is_active: bool = True) -> User:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Crea o aggiorna un utente pre-seedato.")
+    parser = argparse.ArgumentParser(
+        description="Crea o aggiorna un utente pre-seedato."
+    )
     parser.add_argument("--email", required=True, help="Email/username dell'utente")
-    parser.add_argument("--password", required=True, help="Password in chiaro (verrà hashata con argon2)")
     parser.add_argument(
-        "--inactive", action="store_true", help="Crea l'utente come disattivato (is_active=False)"
+        "--password",
+        required=True,
+        help="Password in chiaro (verrà hashata con argon2)",
+    )
+    parser.add_argument(
+        "--inactive",
+        action="store_true",
+        help="Crea l'utente come disattivato (is_active=False)",
     )
     args = parser.parse_args()
 

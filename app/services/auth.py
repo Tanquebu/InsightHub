@@ -11,7 +11,11 @@ log = structlog.get_logger(__name__)
 
 def authenticate_user(db: Session, email: str, password: str) -> User:
     user = db.scalar(select(User).where(User.email == email))
-    if not user or not user.is_active or not verify_password(password, user.password_hash):
+    if (
+        not user
+        or not user.is_active
+        or not verify_password(password, user.password_hash)
+    ):
         raise InvalidCredentials()
 
     log.info("user.authenticated", user_id=user.id, email=user.email)

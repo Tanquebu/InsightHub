@@ -74,8 +74,12 @@ def test_get_dataset_not_found(client: TestClient):
 
 def test_list_datasets(client: TestClient):
     project = _create_project(client)
-    client.post(f"/api/v1/projects/{project['id']}/datasets", json={"name": "file_a.csv"})
-    client.post(f"/api/v1/projects/{project['id']}/datasets", json={"name": "file_b.csv"})
+    client.post(
+        f"/api/v1/projects/{project['id']}/datasets", json={"name": "file_a.csv"}
+    )
+    client.post(
+        f"/api/v1/projects/{project['id']}/datasets", json={"name": "file_b.csv"}
+    )
     response = client.get(f"/api/v1/projects/{project['id']}/datasets")
     assert response.status_code == 200
     assert len(response.json()) == 2
@@ -136,9 +140,7 @@ def test_queue_dataset_ingestion_rejects_dataset_from_another_project(
     assert dispatched == []
 
 
-def test_queue_dataset_ingestion_returns_404_for_missing_dataset(
-    client, monkeypatch
-):
+def test_queue_dataset_ingestion_returns_404_for_missing_dataset(client, monkeypatch):
     project = _create_project(client)
     dispatched: list[int] = []
     monkeypatch.setattr(

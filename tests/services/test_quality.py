@@ -58,7 +58,9 @@ def test_compute_dataset_metrics_computes_completeness_score():
 
 
 def test_compute_dataset_metrics_handles_zero_rows_without_dividing_by_zero():
-    profile = _profile(row_count=0, column_count=3, column_missing_counts={"a": 0, "b": 0, "c": 0})
+    profile = _profile(
+        row_count=0, column_count=3, column_missing_counts={"a": 0, "b": 0, "c": 0}
+    )
 
     metrics = compute_dataset_metrics(profile)
 
@@ -79,7 +81,9 @@ def test_compute_dataset_metrics_handles_zero_columns():
 
 
 def test_empty_dataset_rule_triggers_when_row_count_is_zero():
-    profile = _profile(row_count=0, column_count=2, column_missing_counts={"a": 0, "b": 0})
+    profile = _profile(
+        row_count=0, column_count=2, column_missing_counts={"a": 0, "b": 0}
+    )
 
     issues = evaluate_quality_rules(profile)
 
@@ -90,7 +94,9 @@ def test_empty_dataset_rule_triggers_when_row_count_is_zero():
 
 
 def test_empty_dataset_rule_does_not_trigger_with_rows():
-    profile = _profile(row_count=5, column_count=2, column_missing_counts={"a": 0, "b": 0})
+    profile = _profile(
+        row_count=5, column_count=2, column_missing_counts={"a": 0, "b": 0}
+    )
 
     issues = evaluate_quality_rules(profile)
 
@@ -138,7 +144,9 @@ def test_high_missing_column_rule_reports_one_issue_per_offending_column():
 
     issues = evaluate_quality_rules(profile)
 
-    columns_flagged = [i["message"] for i in issues if i["rule_code"] == RULE_HIGH_MISSING_COLUMN]
+    columns_flagged = [
+        i["message"] for i in issues if i["rule_code"] == RULE_HIGH_MISSING_COLUMN
+    ]
     assert len(columns_flagged) == 2  # "a" (critical) and "c" (warning), not "b"
 
 
@@ -158,7 +166,9 @@ def test_low_completeness_rule_triggers_below_threshold():
 
 
 def test_low_completeness_rule_does_not_trigger_above_threshold():
-    profile = _profile(row_count=10, column_count=2, column_missing_counts={"a": 0, "b": 0})
+    profile = _profile(
+        row_count=10, column_count=2, column_missing_counts={"a": 0, "b": 0}
+    )
 
     issues = evaluate_quality_rules(profile)
 
@@ -210,7 +220,11 @@ def _make_dataset(db_session) -> Dataset:
 def test_persist_quality_issues_stores_rows(db_session):
     dataset = _make_dataset(db_session)
     issues = [
-        {"rule_code": RULE_EMPTY_DATASET, "severity": SEVERITY_CRITICAL, "message": "no rows"},
+        {
+            "rule_code": RULE_EMPTY_DATASET,
+            "severity": SEVERITY_CRITICAL,
+            "message": "no rows",
+        },
     ]
 
     persisted = persist_quality_issues(db_session, dataset.id, issues)
@@ -226,7 +240,13 @@ def test_persist_quality_issues_overwrites_previous_run(db_session):
     persist_quality_issues(
         db_session,
         dataset.id,
-        [{"rule_code": RULE_EMPTY_DATASET, "severity": SEVERITY_CRITICAL, "message": "no rows"}],
+        [
+            {
+                "rule_code": RULE_EMPTY_DATASET,
+                "severity": SEVERITY_CRITICAL,
+                "message": "no rows",
+            }
+        ],
     )
 
     persist_quality_issues(
@@ -252,7 +272,13 @@ def test_persist_quality_issues_with_empty_list_clears_issues(db_session):
     persist_quality_issues(
         db_session,
         dataset.id,
-        [{"rule_code": RULE_EMPTY_DATASET, "severity": SEVERITY_CRITICAL, "message": "no rows"}],
+        [
+            {
+                "rule_code": RULE_EMPTY_DATASET,
+                "severity": SEVERITY_CRITICAL,
+                "message": "no rows",
+            }
+        ],
     )
 
     persist_quality_issues(db_session, dataset.id, [])

@@ -17,7 +17,9 @@ class DatasetProfile(Base):
     column_missing_counts: Mapped[dict] = mapped_column(JSON)
     column_dtypes: Mapped[dict] = mapped_column(JSON)
 
-    created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[object] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[object] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

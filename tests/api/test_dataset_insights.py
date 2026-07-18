@@ -9,7 +9,14 @@ def _create_project(client: TestClient, name: str = "Alpha") -> dict:
     return client.post("/api/v1/projects", json={"name": name}).json()
 
 
-def _profile_dataset(client: TestClient, db_session, project: dict, dataset: dict, csv_text: str, tmp_path):
+def _profile_dataset(
+    client: TestClient,
+    db_session,
+    project: dict,
+    dataset: dict,
+    csv_text: str,
+    tmp_path,
+):
     csv_path = tmp_path / f"{dataset['id']}.csv"
     csv_path.write_text(csv_text)
     db_dataset = db_session.get(Dataset, dataset["id"])
@@ -82,7 +89,9 @@ def test_get_dataset_insights_returns_persisted_issues_for_dirty_data(
     assert len(body["issues"]) == 2
     codes = {issue["rule_code"] for issue in body["issues"]}
     assert codes == {"HIGH_MISSING_COLUMN", "LOW_COMPLETENESS_SCORE"}
-    high_missing = next(i for i in body["issues"] if i["rule_code"] == "HIGH_MISSING_COLUMN")
+    high_missing = next(
+        i for i in body["issues"] if i["rule_code"] == "HIGH_MISSING_COLUMN"
+    )
     assert high_missing["severity"] == "critical"
     assert "name" in high_missing["message"]
     assert "id" in body["issues"][0]
@@ -91,9 +100,7 @@ def test_get_dataset_insights_returns_persisted_issues_for_dirty_data(
 def test_get_dataset_insights_returns_404_for_missing_dataset(client: TestClient):
     project = _create_project(client)
 
-    response = client.get(
-        f"/api/v1/projects/{project['id']}/datasets/999999/insights"
-    )
+    response = client.get(f"/api/v1/projects/{project['id']}/datasets/999999/insights")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Dataset not found"}
@@ -124,7 +131,9 @@ def test_get_dataset_insights_rejects_dataset_from_another_project(
         json={"name": "private.csv"},
     ).json()
 
-    profile = _profile_dataset(client, db_session, owner, dataset, "a,b\n1,2\n", tmp_path)
+    profile = _profile_dataset(
+        client, db_session, owner, dataset, "a,b\n1,2\n", tmp_path
+    )
     quality_service.persist_quality_issues(
         db_session, dataset["id"], quality_service.evaluate_quality_rules(profile)
     )

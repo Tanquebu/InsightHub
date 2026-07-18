@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db
 from app.db.models.user import User
-from app.schemas.dataset import DatasetCreate, DatasetIngestionOut, DatasetOut, DatasetUpdate
+from app.schemas.dataset import (
+    DatasetCreate,
+    DatasetIngestionOut,
+    DatasetOut,
+    DatasetUpdate,
+)
 from app.schemas.insights import DatasetInsightsOut
 from app.schemas.profile import DatasetProfileOut
 from app.services import datasets as dataset_service
@@ -30,7 +35,9 @@ def create_dataset(
 
 @router.get("", response_model=list[DatasetOut])
 def list_datasets(
-    project_id: int, db: Session = Depends(get_db), _user: User = Depends(get_current_user)
+    project_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(get_current_user),
 ):
     if not project_service.get_project(db, project_id):
         raise HTTPException(status_code=404, detail="Project not found")
@@ -124,7 +131,12 @@ def update_dataset(
     if not dataset or dataset.project_id != project_id:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return dataset_service.update_dataset(
-        db, dataset, payload.name, payload.status, payload.source_type, payload.file_path
+        db,
+        dataset,
+        payload.name,
+        payload.status,
+        payload.source_type,
+        payload.file_path,
     )
 
 

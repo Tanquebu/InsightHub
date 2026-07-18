@@ -195,7 +195,9 @@ def test_ingest_dataset_persists_quality_issues_end_to_end(worker_db_with_csv):
     assert result == {"dataset_id": dataset_id, "status": "completed"}
     with session_factory() as db:
         issues = db.scalars(
-            select(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id)
+            select(DatasetQualityIssue).where(
+                DatasetQualityIssue.dataset_id == dataset_id
+            )
         ).all()
         assert len(issues) == 1
         assert issues[0].rule_code == RULE_HIGH_MISSING_COLUMN
@@ -210,7 +212,9 @@ def test_ingest_dataset_without_file_path_produces_no_quality_issues(worker_db):
 
     with session_factory() as db:
         issues = db.scalars(
-            select(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id)
+            select(DatasetQualityIssue).where(
+                DatasetQualityIssue.dataset_id == dataset_id
+            )
         ).all()
         assert issues == []
 
@@ -246,7 +250,9 @@ def test_ingest_dataset_overwrites_quality_issues_on_rerun(tmp_path, monkeypatch
     tasks.ingest_dataset.run(dataset_id)
     with session_factory() as db:
         first_run_issues = db.scalars(
-            select(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id)
+            select(DatasetQualityIssue).where(
+                DatasetQualityIssue.dataset_id == dataset_id
+            )
         ).all()
         # 3/4 missing trips both HIGH_MISSING_COLUMN (critical) and, since it
         # also drags completeness to 0.625, LOW_COMPLETENESS_SCORE (warning).
@@ -264,7 +270,9 @@ def test_ingest_dataset_overwrites_quality_issues_on_rerun(tmp_path, monkeypatch
 
     with session_factory() as db:
         second_run_issues = db.scalars(
-            select(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id)
+            select(DatasetQualityIssue).where(
+                DatasetQualityIssue.dataset_id == dataset_id
+            )
         ).all()
         assert second_run_issues == []
 

@@ -28,6 +28,22 @@ httpx = "^0.27.0"
 ruff = "^0.3.0"
 black = "^24.2.0"
 mypy = "^1.8.0"
+pytest-cov = "^7.1.0"
+
+[tool.ruff.lint.per-file-ignores]
+# Imports must follow the REDIS_URL env override (see comment in the file) so the
+# rate limiter picks up the in-memory backend before app.main is imported.
+"tests/conftest.py" = ["E402"]
+
+[tool.mypy]
+python_version = "3.11"
+
+[[tool.mypy.overrides]]
+module = ["pandas", "celery.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["app"]
 
 [build-system]
 requires = ["poetry-core"]

@@ -39,7 +39,9 @@ def compute_dataset_metrics(profile: DatasetProfile) -> dict:
     # A dataset with no rows and/or no columns has nothing to be missing from —
     # treat it as vacuously complete rather than dividing by zero. The dedicated
     # EMPTY_DATASET rule below is responsible for flagging that situation.
-    completeness_score = 1.0 if total_cells == 0 else 1 - (total_missing_values / total_cells)
+    completeness_score = (
+        1.0 if total_cells == 0 else 1 - (total_missing_values / total_cells)
+    )
 
     return {
         "row_count": row_count,
@@ -137,7 +139,9 @@ def persist_quality_issues(
     issues can vary between runs, this deletes all previous rows for the dataset
     and inserts the freshly computed set.
     """
-    db.execute(delete(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id))
+    db.execute(
+        delete(DatasetQualityIssue).where(DatasetQualityIssue.dataset_id == dataset_id)
+    )
 
     persisted = []
     for issue in issues:
@@ -162,7 +166,9 @@ def persist_quality_issues(
     return persisted
 
 
-def get_dataset_quality_issues(db: Session, dataset_id: int) -> list[DatasetQualityIssue]:
+def get_dataset_quality_issues(
+    db: Session, dataset_id: int
+) -> list[DatasetQualityIssue]:
     return list(
         db.scalars(
             select(DatasetQualityIssue)

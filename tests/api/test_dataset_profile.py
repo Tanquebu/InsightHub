@@ -8,7 +8,9 @@ def _create_project(client: TestClient, name: str = "Alpha") -> dict:
     return client.post("/api/v1/projects", json={"name": name}).json()
 
 
-def test_get_dataset_profile_returns_persisted_metrics(client: TestClient, db_session, tmp_path):
+def test_get_dataset_profile_returns_persisted_metrics(
+    client: TestClient, db_session, tmp_path
+):
     project = _create_project(client)
     dataset = client.post(
         f"/api/v1/projects/{project['id']}/datasets",
@@ -39,9 +41,7 @@ def test_get_dataset_profile_returns_persisted_metrics(client: TestClient, db_se
 def test_get_dataset_profile_returns_404_for_missing_dataset(client: TestClient):
     project = _create_project(client)
 
-    response = client.get(
-        f"/api/v1/projects/{project['id']}/datasets/999999/profile"
-    )
+    response = client.get(f"/api/v1/projects/{project['id']}/datasets/999999/profile")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Dataset not found"}

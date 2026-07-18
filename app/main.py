@@ -15,10 +15,14 @@ configure_logging()
 app = FastAPI(title="InsightHub", version="0.1.0")
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# slowapi/Starlette's own handler signatures are narrower than Starlette's
+# add_exception_handler typeshed stub expects; both handlers work correctly at
+# runtime (FastAPI dispatches by registered exception type), so mypy's arg-type
+# complaint here is a stub gap, not a real error.
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(SlowAPIMiddleware)
 
-app.add_exception_handler(InsightHubError, insighthub_exception_handler)
+app.add_exception_handler(InsightHubError, insighthub_exception_handler)  # type: ignore[arg-type]
 
 
 @app.get("/api/v1/health")
