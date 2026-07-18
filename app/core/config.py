@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     quality_missing_critical_threshold: float = 0.5
     quality_min_completeness_score: float = 0.7
 
+    # Milestone 5 — Hardening: auth (JWT) and rate limiting.
+    jwt_secret_key: str  # es: stringa casuale lunga, letta da .env
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+
+    redis_url: str = "redis://redis:6379/2"
+    rate_limit_per_minute: int = 60
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

@@ -12,5 +12,10 @@ class ProjectAlreadyExists(InsightHubError):
     detail = "Project name already exists"
 
 
+class InvalidCredentials(InsightHubError):
+    status_code = 401
+    detail = "Incorrect email or password"
+
+
 async def insighthub_exception_handler(request: Request, exc: InsightHubError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
