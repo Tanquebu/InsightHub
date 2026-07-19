@@ -142,9 +142,9 @@ Rendere il progetto “production-ready”
 
 ## 🌐 Milestone 7 – Frontend (opzionale)
 
-* [ ] Dashboard React
-* [ ] Visualizzazione dataset
-* [ ] Insight UI
+* [x] Dashboard React
+* [x] Visualizzazione dataset
+* [x] Insight UI
 
 ---
 

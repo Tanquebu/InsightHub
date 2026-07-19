@@ -29,7 +29,19 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/2"
     rate_limit_per_minute: int = 60
 
+    # Milestone 7 — Frontend: CORS per il dev server Vite (comma-separated se serve
+    # più di un'origin, es. "http://localhost:5173,http://127.0.0.1:5173").
+    cors_allowed_origins: str = "http://localhost:5173"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @property
+    def cors_allowed_origins_list(self) -> list[str]:
+        return [
+            origin.strip()
+            for origin in self.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
 
 
 # database_url/jwt_secret_key have no Python-level default because they're required

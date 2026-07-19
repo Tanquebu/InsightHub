@@ -4,11 +4,17 @@
 > interrotta, riprendere da qui: leggere la tabella, riprendere dal primo item non completato.
 > Prima azione sempre: `bash ~/.claude/rate-limit.sh --fresh`.
 
-Aggiornato: 2026-07-18T23:50 — Utente ha deciso di riprendere la Milestone 7 (dashboard React),
-ma il budget 5h è al 94% (soglia stop nuovi spawn 80%) — vedi sezione "Milestone 7 — decisioni e
-piano tecnico" sotto per il brief completo. Nessuno spawn effettuato in questa sessione;
-pianificazione pronta, esecuzione rimandata al reset budget. ROADMAP.md allineato (checkbox M5/M6
-mancavano, corrette).
+Aggiornato: 2026-07-19T10:20 — Ripresa con permessi elevati (bypassPermissions) autorizzata
+esplicitamente dall'utente per sbloccare la sessione precedente (bloccata su `npm install`/Docker
+mai approvati). Rate limit `--fresh` verificato a inizio ripresa (5h 60%) e di nuovo prima del
+commit (5h 72%) — sempre sotto soglia. **Verifica runtime della Milestone 7 completata con successo
+in questa sessione** — vedi sezione dedicata sotto per i dettagli (build, avvio Docker, seed utente,
+pipeline ingest→profile→insight, test end-to-end nel browser via Playwright in container, screenshot
+verificati). Nessuna discrepanza trovata rispetto al codice scritto dal subagent nella sessione
+precedente; verifica indipendente ripetuta anche in questa ripresa (riletti tutti i file sorgente
+del frontend, incrociati i tipi TypeScript con le risposte reali dell'API). Codice committato in
+questa sessione (vedi `git log` per l'hash — il commit include anche questo aggiornamento del
+checkpoint). ROADMAP.md aggiornato: checkbox Milestone 7 spuntate.
 
 | Milestone | Stato | Note |
 |---|---|---|
@@ -18,7 +24,7 @@ mancavano, corrette).
 | 4 – Insight Engine | ✅ completo (tranne ML opzionale) | commit `8a9fdb7` — verificato (59/59 test, migration su Postgres reale). "Prime feature ML (opzionale)" lasciata non fatta, come da roadmap |
 | 5 – Hardening | ✅ completo | commit `2cb0f69` — verificato (67/67 test, migration su Postgres reale upgrade/downgrade/upgrade, ruff+mypy clean) |
 | 6 – Testing & Quality | ✅ completo | commit `a12f6b5` — verificato (85/85 test, coverage 96.27% con pytest-cov, ruff+black+mypy puliti, CI GitHub Actions aggiunta) |
-| 7 – Frontend (opzionale) | 🔜 pianificata, in attesa di reset budget | **decisione utente (2026-07-19)**: procedere con la dashboard React. Brief tecnico completo pronto (vedi sezione dedicata). Spawn del subagent programmato per dopo il reset 5h (03:40, wakeup alle 03:45). |
+| 7 – Frontend (opzionale) | ✅ completo | `frontend/` (React+TS+Vite) + CORS nel backend (`app/core/config.py`, `app/main.py`). Verificato sia staticamente (diff riletti riga per riga, tipi coerenti con gli schema Pydantic) sia a runtime (build reale, login contro backend reale, pipeline ingest/profile/insight, navigazione UI in browser headless con screenshot) — vedi sezione dedicata. |
 
 ## Chiusura sessione (2026-07-19T00:35)
 
@@ -207,6 +213,110 @@ implementativa, coerenti con lo stack e le convenzioni già in uso nel backend.
 iniziare; se emerge un'ambiguità di prodotto genuinamente non coperta qui (es. multi-progetto vs
 singolo, gestione errori UX specifica), fermarsi e lasciare una nota nel checkpoint invece di
 decidere silenziosamente — l'orchestratore la porrà all'utente alla verifica.
+
+## Milestone 7 — bloccata su verifica runtime (2026-07-19T09:50)
+
+Il subagent ha implementato per intero il brief tecnico sopra:
+
+- `frontend/` (React 18 + TS 5.5 + Vite 5 + react-router-dom 6): login (form-encoded contro
+  `/api/v1/auth/login`, token in localStorage), lista dataset (`ProjectsDatasetsPage`, selezione
+  progetto via `<select>`, assunzione di prodotto esplicitata nel file), dettaglio dataset che
+  combina `/profile` + `/insights` in un'unica vista con gestione del 404 "non ancora profilato"
+  (`DatasetDetailPage`). Client fetch centralizzato in `frontend/src/api/client.ts` con redirect
+  automatico al login su 401. Tipi TS in `frontend/src/api/types.ts` allineati 1:1 agli schema
+  Pydantic (`Project`, `Dataset`, `DatasetProfile`, `DatasetMetrics`, `DatasetQualityIssue`,
+  `DatasetInsights`, `TokenResponse`) — controllato a mano campo per campo.
+- Backend: `app/main.py` aggiunge `CORSMiddleware` (origin da nuova setting
+  `cors_allowed_origins`, default `http://localhost:5173`, `allow_credentials=False` perché il
+  token viaggia in header non in cookie), `app/core/config.py` aggiunge la setting con lo stesso
+  stile delle esistenti, `.env.example` aggiorna con `CORS_ALLOWED_ORIGINS`.
+- Ho riletto ogni file (non solo il diff aggregato) — qualità buona, nessun bug logico individuato,
+  nessuna libreria pesante introdotta, scope rispettato (niente Redux/test frontend/Docker prod,
+  come da brief).
+
+**Cosa NON è stato fatto, e perché**: né il subagent né io (orchestratore, in questa stessa
+sessione) siamo riusciti a eseguire `npm install`, `npm run build`/`tsc --noEmit`, né
+`docker compose -f .devcontainer/docker-compose.yml -f .devcontainer/docker-compose.override.yml
+up -d api`. Ogni tentativo (ripetuto, in momenti diversi) ha restituito "richiede approvazione" e
+non è mai stato né approvato né esplicitamente negato — verosimilmente perché questa sessione gira
+da un wakeup automatico senza un utente presente in tempo reale per confermare il prompt di
+permesso. Di conseguenza:
+- Nessuna verifica di compilazione TypeScript reale (solo revisione manuale del codice).
+- Nessun test di login reale, nessuna verifica visiva di lista dataset / insight UI contro il
+  backend reale (container `db`/`redis` del devcontainer sono su, ma `api` era solo "Created", mai
+  avviato in questa sessione).
+- **Codice NON committato**: `frontend/` è untracked, `app/core/config.py` / `app/main.py` /
+  `.env.example` hanno modifiche non stagate. Working tree lasciato così com'è (vedi policy
+  "Se interrotto" sotto — commit solo ciò che è verificato).
+
+**Alla ripresa, in ordine**:
+1. Se in sessione interattiva (utente presente): rilanciare `cd frontend && npm install && npm run
+   build`, poi `docker compose -f .devcontainer/docker-compose.yml -f
+   .devcontainer/docker-compose.override.yml up -d api`, poi creare un utente di test via
+   `poetry run python -m app.cli.seed_user` dentro il container `api`, poi `npm run dev` in
+   `frontend/` e login manuale reale nel browser.
+2. Se i comandi restano bloccati da "richiede approvazione" anche con l'utente presente, il
+   problema non è l'assenza dell'utente ma la policy di permessi della sessione stessa (verificare
+   settings/permission mode) — da segnalare esplicitamente, non da aggirare.
+3. Solo dopo verifica riuscita: aggiornare la tabella di stato (Milestone 7 → ✅), spuntare i 3
+   checkbox in `ROADMAP.md`, poi commit.
+
+## Milestone 7 — verifica runtime completata (2026-07-19T10:20)
+
+Ripresa autorizzata dall'utente con permessi `bypassPermissions` per sbloccare esattamente i
+comandi elencati sopra. Eseguito in ordine, con esito positivo su tutta la linea:
+
+1. **Build reale**: `npm install` (70 pacchetti, nessun errore) e `npm run build`
+   (`tsc --noEmit && vite build`) in `frontend/` — build TypeScript pulita, bundle generato
+   (`dist/assets/index-*.js`, 173.8 kB / 56.4 kB gzip).
+2. **Ambiente Docker**: `db`/`redis` del devcontainer erano già `Up` da sessioni precedenti;
+   avviato anche `api` e — non ancora avviato in nessuna sessione precedente — il container
+   `worker` (Celery), necessario per processare davvero l'ingestion. **Nota infrastrutturale**:
+   la porta host 8000 risultava occupata da un processo Python di un *altro progetto*
+   (`concorsi-qualifier`, non InsightHub) già in esecuzione sulla stessa VPS — non l'ho fermato
+   (fuori scope, altrui). Rimappata la porta di `api` su `8002` solo per questa sessione di
+   verifica, tramite un file compose aggiuntivo tenuto in `/tmp` (mai committato, mai parte del
+   repo). Stessa cosa per il dev server Vite: porta `5173` di default già occupata da un container
+   di un altro progetto (`ai-news-pipeline`), usata `5183` invece, con `frontend/.env.local`
+   (ignorato da git, `*.local`) per puntare `VITE_API_BASE_URL` a `http://localhost:8002` e
+   `CORS_ALLOWED_ORIGINS` rimappato di conseguenza per la sola sessione via env override Docker —
+   **nessuna modifica committata ai default di porta** (`8000`/`5173` restano i default nel codice,
+   coerenti con quanto documentato altrove).
+3. **Seed utente + pipeline dati**: creato un utente di test via
+   `app/cli/seed_user.py` (`test@insighthub.local`), poi via API un progetto/dataset demo con un
+   CSV reale (5 righe, valori mancanti intenzionali su `age`/`signup_date`), ingestion lanciata e
+   processata dal worker Celery con successo (`dataset.ingestion.completed`), profilo e insight
+   generati correttamente (`row_count=5`, 2 issue `HIGH_MISSING_COLUMN` al 20%, `completeness_score
+   0.92`) — la pipeline Milestone 2/3/4 funziona end-to-end anche dietro al nuovo frontend.
+4. **Test end-to-end nel browser**: nessun `chromium-cli` disponibile in questo ambiente e
+   Chromium locale di Playwright privo di librerie di sistema (`libatk-1.0.so.0` mancante,
+   nessun sudo passwordless per installarle) — bypassato lanciando il browser dentro l'immagine
+   Docker ufficiale `mcr.microsoft.com/playwright:v1.61.1-jammy` con `--network host` (l'host
+   Docker rootless qui supporta questa modalità), script Playwright headless che: naviga
+   sull'app → redirect automatico a `/login` (utente non autenticato) → compila e invia il form di
+   login reale contro il backend reale → redirect a `/datasets` → verifica che il dropdown
+   progetto mostri "Progetto Demo" e la tabella entrambi i dataset creati → apre il dataset
+   profilato → verifica presenza delle metriche (`row_count: 5`) e delle issue
+   (`HIGH_MISSING_COLUMN`) nella pagina renderizzata → cancella il token da `localStorage` e
+   verifica il redirect automatico a `/login` (gestione 401/sessione scaduta) → **zero errori in
+   console del browser**. Screenshot catturati e ispezionati visivamente ad ogni passaggio chiave
+   (login, lista dataset, dettaglio con metriche/issue) — corrispondono esattamente a quanto
+   atteso dal codice e dalle risposte API.
+5. **Verifica indipendente del codice ripetuta in questa sessione** (oltre a quella già fatta
+   nella sessione precedente): riletti `client.ts`, `AuthContext.tsx`, `types.ts`, `App.tsx`,
+   `ProtectedRoute.tsx`, `Layout.tsx`, `main.tsx` — tipi TypeScript incrociati con le risposte reali
+   dell'API (non solo con gli schema Pydantic staticamente), routing e gestione auth coerenti col
+   comportamento osservato a runtime. Nessuna discrepanza, nessun bug trovato.
+6. **Pulizia post-verifica**: eliminato il progetto/dataset demo dal DB (`DELETE
+   /api/v1/projects/5`, cascade su dataset/profilo/issue), rimossa la cartella temporanea
+   `.tmp_verify/` con il CSV di prova, terminato il processo `npm run dev`, fermati (non rimossi i
+   dati) i container `api`/`worker` avviati per il test, rimossi i file di override temporanei in
+   `/tmp`. Working tree finale: solo le modifiche di codice attese (`frontend/` nuovo,
+   `.env.example`/`app/core/config.py`/`app/main.py` modificati, questo checkpoint) — nessun
+   residuo di test.
+
+Codice committato subito dopo (vedi `git log`). `ROADMAP.md` aggiornato, checkbox Milestone 7
+spuntate.
 
 ## Se interrotto per soglia rate-limit
 
